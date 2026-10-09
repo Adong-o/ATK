@@ -1,0 +1,88 @@
+app:
+  mode: run
+  interval_seconds: 3600
+  headless: false
+  screenshot_on_failure: true
+  stop_file: STOP_BOT.txt
+
+tradingview:
+  base_url: "https://www.tradingview.com"
+  symbol_prefix: "FX:"
+  timeframe: "60"
+  paper_trading: true
+  user_data_dir: ""
+  symbol_overrides:
+    XAUUSD: "OANDA:XAUUSD"
+
+analysis:
+  watchlist:
+    - XAUUSD
+  indicators:
+    ma_length: 50
+    rsi_length: 14
+  screening:
+    # Smart multi-factor algorithm (see src/signals/screening_rules.py)
+    # Long entry:  price > MA50  AND  55 <= RSI < 72
+    # Short entry: price < MA50  AND  28 < RSI <= 45
+    rsi_long_threshold: 55       # RSI min for long (momentum gate)
+    rsi_long_max: 72             # RSI ceiling — avoid overbought longs
+    rsi_short_threshold: 45      # RSI max for short (momentum gate)
+    rsi_short_min: 28            # RSI floor — avoid oversold shorts
+    session_filter: true         # Only trade during active XAUUSD sessions
+    min_session_weight: 0.30     # 0.0=always trade, 1.0=only London-NY overlap
+
+risk:
+  max_concurrent_positions: 1
+  max_trades_per_day: 5
+  max_daily_loss_fraction: 0.02
+  cooldown_seconds: 300
+
+execution:
+  quantity: 10000
+  # Minimum composite score to place a trade (0-1). 0.55 = balanced quality gate.
+  min_signal_score: 0.55
+
+broker:
+  backend: "mt5"
+
+mt5:
+  enabled: true
+  # Leave blank — bot auto-detects terminal64.exe.
+  # Set full path only if auto-detect fails, e.g.:
+  # terminal_path: "C:\\Program Files\\MetaTrader 5\\terminal64.exe"
+  terminal_path: ""
+  login_env: "MT5_LOGIN"
+  password_env: "MT5_PASSWORD"
+  server_env: "MT5_SERVER"
+  lot: 0.01
+  deviation: 30
+  magic: 902001
+  # true = validate orders but don't send (safe first run)
+  # false = real demo/live orders
+  dry_run: true
+  symbol_map:
+    XAUUSD: "XAUUSD"
+
+# Scalping: 5-minute chart, runs every 2 minutes
+scalping:
+  enabled: true
+  chart_timeframe: "5"
+  interval_seconds: 120
+  sl_points: 5.0
+  tp_rr: [1.5, 2.5, 3.5, 5.0]   # TP1-TP4 as multiples of SL distance
+  screening:
+    rsi_long_threshold: 55
+    rsi_long_max: 72
+    rsi_short_threshold: 45
+    rsi_short_min: 28
+    session_filter: true
+    min_session_weight: 0.30
+
+dashboard:
+  enabled: true
+  host: "127.0.0.1"
+  port: 8765
+
+state:
+  sqlite_path: "runs/state.db"
+  screenshots_dir: "runs/screenshots"
