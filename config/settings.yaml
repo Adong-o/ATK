@@ -13,10 +13,16 @@ tradingview:
   user_data_dir: ""
   symbol_overrides:
     XAUUSD: "OANDA:XAUUSD"
+    EURUSD: "OANDA:EURUSD"
+    GBPUSD: "OANDA:GBPUSD"
+    USDJPY: "OANDA:USDJPY"
 
 analysis:
   watchlist:
     - XAUUSD
+    - EURUSD
+    - GBPUSD
+    - USDJPY
   indicators:
     ma_length: 50
     rsi_length: 14
@@ -32,9 +38,10 @@ analysis:
     min_session_weight: 0.30     # 0.0=always trade, 1.0=only London-NY overlap
 
 risk:
-  max_concurrent_positions: 1
-  max_trades_per_day: 5
-  max_daily_loss_fraction: 0.02
+  risk_percentage: 1.0        # Risk 1% of account balance per trade
+  max_concurrent_positions: 3
+  max_trades_per_day: 15
+  max_daily_loss_fraction: 0.05
   cooldown_seconds: 300
 
 execution:
@@ -54,7 +61,7 @@ mt5:
   login_env: "MT5_LOGIN"
   password_env: "MT5_PASSWORD"
   server_env: "MT5_SERVER"
-  lot: 0.01
+  lot: 0.01  # Fallback if dynamic sizing fails
   deviation: 30
   magic: 902001
   # true = validate orders but don't send (safe first run)
@@ -62,6 +69,9 @@ mt5:
   dry_run: true
   symbol_map:
     XAUUSD: "XAUUSD"
+    EURUSD: "EURUSD"
+    GBPUSD: "GBPUSD"
+    USDJPY: "USDJPY"
 
 # Scalping: 5-minute chart, runs every 2 minutes
 scalping:

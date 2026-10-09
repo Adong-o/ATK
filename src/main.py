@@ -90,6 +90,7 @@ async def run_loop(settings: Settings, run_once: bool) -> None:
         mt5_executor = MT5TerminalExecutor(
             mt5_cfg=settings.mt5,
             min_signal_score=settings.execution.min_signal_score,
+            risk_cfg=settings.risk,
         )
         await mt5_executor.initialize()
 

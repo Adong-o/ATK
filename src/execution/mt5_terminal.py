@@ -82,9 +82,10 @@ class MT5TerminalExecutor:
     _RETRY_DELAY_S: int = 6      # seconds between init retries
     _LAUNCH_WAIT_S: int = 10     # seconds to wait after auto-launching MT5
 
-    def __init__(self, mt5_cfg: MT5Config, min_signal_score: float) -> None:
+    def __init__(self, mt5_cfg: MT5Config, min_signal_score: float, risk_cfg: Any = None) -> None:
         self.cfg = mt5_cfg
         self.min_signal_score = float(min_signal_score)
+        self.risk_cfg = risk_cfg
         self._mt5: Any = None
         self._ready: bool = False
 
@@ -245,10 +246,34 @@ class MT5TerminalExecutor:
         sl = float(bracket["sl"])  if bracket and bracket.get("sl")  is not None else 0.0
         tp = float(bracket["tp1"]) if bracket and bracket.get("tp1") is not None else 0.0
 
+        # Dynamic Lot Sizing
+        lot_size = float(self.cfg.lot)
+        if self.risk_cfg and hasattr(self.risk_cfg, 'risk_percentage') and sl > 0:
+            account_info = mt5.account_info()
+            if account_info:
+                balance = account_info.balance
+                risk_amount = balance * (self.risk_cfg.risk_percentage / 100.0)
+                sl_distance = abs(price - sl)
+                
+                # Formula: Risk / (SL Distance * Contract Size)
+                # We use a simplified approximation or fall back to MT5 symbol info
+                symbol_info = mt5.symbol_info(mt5_symbol)
+                if symbol_info and sl_distance > 0:
+                    tick_value = symbol_info.trade_tick_value
+                    tick_size = symbol_info.trade_tick_size
+                    if tick_value > 0 and tick_size > 0:
+                        loss_per_lot = (sl_distance / tick_size) * tick_value
+                        if loss_per_lot > 0:
+                            calculated_lot = risk_amount / loss_per_lot
+                            # Round to nearest step
+                            step = symbol_info.volume_step
+                            lot_size = round(calculated_lot / step) * step
+                            lot_size = max(symbol_info.volume_min, min(lot_size, symbol_info.volume_max))
+        
         request: Dict[str, Any] = {
             "action":       mt5.TRADE_ACTION_DEAL,
             "symbol":       mt5_symbol,
-            "volume":       float(self.cfg.lot),
+            "volume":       float(lot_size),
             "type":         order_type,
             "price":        float(price),
             "deviation":    int(self.cfg.deviation),

@@ -65,22 +65,20 @@ class AnalysisConfig:
 
 @dataclass(frozen=True)
 class RiskConfig:
+    risk_percentage: float
     max_concurrent_positions: int
     max_trades_per_day: int
     max_daily_loss_fraction: float
     cooldown_seconds: int
-
 
 @dataclass(frozen=True)
 class ExecutionConfig:
     quantity: float
     min_signal_score: float
 
-
 @dataclass(frozen=True)
 class BrokerConfig:
     backend: str  # "tradingview_ui" | "mt5"
-
 
 @dataclass(frozen=True)
 class MT5Config:
@@ -95,7 +93,6 @@ class MT5Config:
     dry_run: bool
     symbol_map: Dict[str, str]
 
-
 @dataclass(frozen=True)
 class ScalpingConfig:
     enabled: bool
@@ -105,19 +102,16 @@ class ScalpingConfig:
     tp_rr: Tuple[float, float, float, float]
     screening: Dict[str, Any]
 
-
 @dataclass(frozen=True)
 class DashboardConfig:
     enabled: bool
     host: str
     port: int
 
-
 @dataclass(frozen=True)
 class StateConfig:
     sqlite_path: str
     screenshots_dir: str
-
 
 @dataclass(frozen=True)
 class Settings:
@@ -131,7 +125,6 @@ class Settings:
     scalping: ScalpingConfig
     dashboard: DashboardConfig
     state: StateConfig
-
 
 def load_settings(settings_path: str) -> Settings:
     path = Path(settings_path)
@@ -180,6 +173,7 @@ def load_settings(settings_path: str) -> Settings:
     )
 
     risk = RiskConfig(
+        risk_percentage=float(raw["risk"].get("risk_percentage", 1.0)),
         max_concurrent_positions=int(raw["risk"]["max_concurrent_positions"]),
         max_trades_per_day=int(raw["risk"]["max_trades_per_day"]),
         max_daily_loss_fraction=float(raw["risk"]["max_daily_loss_fraction"]),
