@@ -51,11 +51,11 @@ def stop_bot():
     STOP_FILE.write_text("STOP\n")
 
 st.set_page_config(page_title="ATK V2 Controller", layout="wide")
-st.title("🤖 ATK V2 - Bot Controller")
+st.title("ATK V2 - Bot Controller")
 
 # Sidebar for settings
 with st.sidebar:
-    st.header("⚙️ MT5 Credentials")
+    st.header("MT5 Credentials")
     env_vars = load_env()
     login = st.text_input("Account Login", value=env_vars.get("MT5_LOGIN", ""))
     password = st.text_input("Password", value=env_vars.get("MT5_PASSWORD", ""), type="password")
@@ -69,25 +69,25 @@ with st.sidebar:
 col1, col2 = st.columns(2)
 
 with col1:
-    st.header("🎮 Control Panel")
+    st.header("Control Panel")
     running = is_bot_running()
     
     if running:
-        st.success("Bot Status: 🟢 RUNNING")
-        if st.button("🛑 Stop Trading", type="primary"):
+        st.success("Bot Status: RUNNING")
+        if st.button("Stop Trading", type="primary"):
             stop_bot()
             st.rerun()
     else:
-        st.error("Bot Status: 🔴 STOPPED")
-        if st.button("🚀 Start Trading", type="primary"):
+        st.error("Bot Status: STOPPED")
+        if st.button("Start Trading", type="primary"):
             start_bot()
             st.rerun()
 
 with col2:
-    st.header("📊 Live MT5 Dashboard")
+    st.header("Live MT5 Dashboard")
     env = load_env()
     
-    if st.button("🔄 Connect & Fetch Account Details"):
+    if st.button("Connect & Fetch Account Details"):
         if not mt5.initialize():
             st.error("Failed to initialize MetaTrader 5.")
         else:
