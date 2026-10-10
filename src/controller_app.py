@@ -54,7 +54,55 @@ def is_market_closed():
     return now.weekday() >= 5
 
 st.set_page_config(page_title="ATK Dashboard", layout="wide")
+
+# Custom CSS for a professional dashboard look
+st.markdown("""
+<style>
+    div[data-testid="stMetricValue"] {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1E88E5;
+    }
+    div[data-testid="stMetricLabel"] {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #555555;
+    }
+    .main .block-container {
+        padding-top: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("ATK Dashboard")
+
+# ─── LIVE ACCOUNT BANNER ───────────────────────────────────────────────────
+env = load_env()
+has_creds = bool(env.get("MT5_LOGIN") and env.get("MT5_PASSWORD") and env.get("MT5_SERVER"))
+
+if has_creds:
+    if not mt5.initialize():
+        st.error("🔴 MetaTrader 5 Terminal Not Found or Failed to Initialize.")
+    else:
+        if mt5.login(int(env["MT5_LOGIN"]), password=env["MT5_PASSWORD"], server=env["MT5_SERVER"]):
+            acc = mt5.account_info()
+            if acc:
+                st.success(f"🟢 Connected: **{env['MT5_SERVER']}** | Account: **{env['MT5_LOGIN']}**")
+                
+                # Display balance metrics in a prominent top banner
+                m_col1, m_col2, m_col3 = st.columns(3)
+                with m_col1:
+                    st.metric("Live Balance", f"${acc.balance:,.2f}")
+                with m_col2:
+                    st.metric("Live Equity", f"${acc.equity:,.2f}")
+                with m_col3:
+                    st.metric("Free Margin", f"${acc.margin_free:,.2f}")
+                st.markdown("---")
+        else:
+            st.error("🔴 Failed to connect to MT5 account. Please check your credentials in the sidebar.")
+        mt5.shutdown()
+else:
+    st.warning("⚠️ No MT5 Credentials found. Please enter them in the sidebar to view your live balance.")
 
 # ─── SIDEBAR ────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -75,6 +123,7 @@ with st.sidebar:
     if st.button("Save Credentials"):
         save_env(login, password, server)
         st.success("Credentials saved to .env")
+        st.rerun()
 
     st.markdown("---")
     st.header("Strategy Customization")
@@ -140,23 +189,6 @@ with col1:
         if st.button("Start Trading", type="primary"):
             start_bot()
             st.rerun()
-            
-    st.markdown("---")
-    st.header("Account Overview")
-    env = load_env()
-    if st.button("Fetch Live Account Data"):
-        if not mt5.initialize():
-            st.error("Failed to initialize MetaTrader 5.")
-        else:
-            if mt5.login(int(env["MT5_LOGIN"]), password=env["MT5_PASSWORD"], server=env["MT5_SERVER"]):
-                acc = mt5.account_info()
-                if acc:
-                    st.metric("Balance", f"${acc.balance:,.2f}")
-                    st.metric("Equity", f"${acc.equity:,.2f}")
-                    st.metric("Free Margin", f"${acc.margin_free:,.2f}")
-            else:
-                st.error("Failed to connect to MT5 account.")
-            mt5.shutdown()
 
 with col2:
     st.header("Live Analysis Preview")
