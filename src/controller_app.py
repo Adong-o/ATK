@@ -89,12 +89,23 @@ with st.sidebar:
     scalping_overrides = current_overrides.get("scalping", {})
     mt5_overrides = current_overrides.get("mt5", {})
     
-    risk_pct = st.number_input("Risk Per Trade (%)", min_value=0.1, max_value=5.0, value=float(risk_overrides.get("risk_percentage", 1.0)), step=0.1)
-    max_trades = st.number_input("Max Trades Per Day", min_value=1, max_value=50, value=int(risk_overrides.get("max_trades_per_day", 15)))
-    sl_points = st.number_input("Stop Loss Distance", min_value=1.0, max_value=100.0, value=float(scalping_overrides.get("sl_points", 5.0)), step=1.0)
-    slippage = st.number_input("Max Slippage (Deviation)", min_value=5, max_value=100, value=int(mt5_overrides.get("deviation", 30)))
+    use_dynamic = current_overrides.get("use_dynamic_brain", True)
+    manual_mode = st.toggle("Enable Manual Settings", value=not use_dynamic, help="If off, the bot uses its own mathematical research (ATR volatility) to determine Stop Loss, Take Profit, and Risk sizing dynamically.")
+    
+    if manual_mode:
+        risk_pct = st.number_input("Risk Per Trade (%)", min_value=0.1, max_value=5.0, value=float(risk_overrides.get("risk_percentage", 1.0)), step=0.1)
+        max_trades = st.number_input("Max Trades Per Day", min_value=1, max_value=50, value=int(risk_overrides.get("max_trades_per_day", 15)))
+        sl_points = st.number_input("Stop Loss Distance", min_value=1.0, max_value=100.0, value=float(scalping_overrides.get("sl_points", 5.0)), step=1.0)
+        slippage = st.number_input("Max Slippage (Deviation)", min_value=5, max_value=100, value=int(mt5_overrides.get("deviation", 30)))
+    else:
+        # Fallbacks when manual is disabled
+        risk_pct = 1.0
+        max_trades = 15
+        sl_points = 5.0
+        slippage = 30
     
     if st.button("Save Strategy Settings"):
+        current_overrides["use_dynamic_brain"] = not manual_mode
         current_overrides["risk"] = {
             "risk_percentage": risk_pct,
             "max_trades_per_day": max_trades

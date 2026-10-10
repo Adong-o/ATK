@@ -246,6 +246,36 @@ class MT5TerminalExecutor:
         sl = float(bracket["sl"])  if bracket and bracket.get("sl")  is not None else 0.0
         tp = float(bracket["tp1"]) if bracket and bracket.get("tp1") is not None else 0.0
 
+        # Dynamic Brain: ATR Volatility Override
+        import yaml
+        overrides_file = Path(__file__).resolve().parents[2] / "config" / "overrides.yaml"
+        use_dynamic_brain = True
+        if overrides_file.exists():
+            try:
+                use_dynamic_brain = yaml.safe_load(overrides_file.read_text()).get("use_dynamic_brain", True)
+            except Exception:
+                pass
+                
+        if use_dynamic_brain:
+            rates = mt5.copy_rates_from_pos(mt5_symbol, mt5.TIMEFRAME_M5, 0, 15)
+            if rates is not None and len(rates) > 1:
+                import pandas as pd
+                df = pd.DataFrame(rates)
+                df['tr0'] = abs(df['high'] - df['low'])
+                df['tr1'] = abs(df['high'] - df['close'].shift())
+                df['tr2'] = abs(df['low'] - df['close'].shift())
+                df['tr'] = df[['tr0', 'tr1', 'tr2']].max(axis=1)
+                atr = df['tr'].rolling(14).mean().iloc[-1]
+                
+                # Dynamic ATR-based Stop Loss & Take Profit (1.5x ATR for SL, 2.5x ATR for TP)
+                sl_distance = atr * 1.5
+                if side == "long":
+                    sl = price - sl_distance
+                    tp = price + (atr * 2.5)
+                else:
+                    sl = price + sl_distance
+                    tp = price - (atr * 2.5)
+
         lot_size = float(self.cfg.lot)
         if self.risk_cfg and hasattr(self.risk_cfg, 'risk_percentage') and sl > 0:
             account_info = mt5.account_info()
