@@ -53,7 +53,7 @@ def is_market_closed():
     now = datetime.datetime.utcnow()
     return now.weekday() >= 5
 
-st.set_page_config(page_title="ATK Dashboard", layout="wide")
+st.set_page_config(page_title="ATK Dashboard", page_icon="📈", layout="wide")
 
 # Custom CSS for a professional dashboard look
 st.markdown("""
@@ -120,20 +120,17 @@ with st.sidebar:
     env_vars = load_env()
     login = st.text_input("Account Login", value=env_vars.get("MT5_LOGIN", ""))
     password = st.text_input("Password", value=env_vars.get("MT5_PASSWORD", ""), type="password")
-    
-    server_list = ["Exness-MT5Trial9", "Exness-Real", "MetaQuotes-Demo", "Other"]
-    current_server = env_vars.get("MT5_SERVER", "Exness-MT5Trial9")
-    
-    selected_server = st.selectbox("Server", server_list, index=server_list.index(current_server) if current_server in server_list else 3)
-    if selected_server == "Other":
-        server = st.text_input("Custom Server Name", value=current_server if current_server not in server_list else "")
-    else:
-        server = selected_server
+    server = st.text_input("Broker Server (Exact Name)", value=env_vars.get("MT5_SERVER", ""), help="Example: Exness-MT5Trial9 or MetaQuotes-Demo")
     
     if st.button("Save Credentials"):
         save_env(login, password, server)
         st.success("Credentials saved to .env")
         st.rerun()
+        
+    st.markdown("---")
+    st.markdown("### MT5 Web Terminal")
+    st.markdown("Need to open a new account or check manually? [Open MT5 Web Interface](https://trade.mql5.com/trade)")
+    st.caption("Note: The Python Bot Engine strictly requires the desktop terminal64.exe to execute automated trades. The web terminal is for manual viewing only.")
 
     st.markdown("---")
     st.header("Strategy Customization")
