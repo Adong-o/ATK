@@ -223,4 +223,8 @@ with col1:
 with col2:
     st.header("In-Browser MT5 Terminal")
     st.info("Log in here to manage your accounts manually, view charts, and monitor trades directly within ATK.")
-    st.components.v1.iframe("https://trade.mql5.com/trade", height=800, scrolling=True)
+    
+    st.warning("🔒 **Security Notice**: MetaQuotes blocks embedding the Web Terminal inside other apps to prevent Clickjacking attacks. It must be opened in a secure, dedicated tab.")
+    
+    st.link_button("🚀 Launch Official MT5 Web Terminal", "https://trade.mql5.com/trade", type="primary")
+    st.link_button("🚀 Launch Exness Web Terminal", "https://terminal.exness.com/", type="secondary")
