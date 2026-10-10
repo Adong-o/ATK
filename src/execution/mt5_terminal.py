@@ -246,7 +246,6 @@ class MT5TerminalExecutor:
         sl = float(bracket["sl"])  if bracket and bracket.get("sl")  is not None else 0.0
         tp = float(bracket["tp1"]) if bracket and bracket.get("tp1") is not None else 0.0
 
-        # Dynamic Lot Sizing
         lot_size = float(self.cfg.lot)
         if self.risk_cfg and hasattr(self.risk_cfg, 'risk_percentage') and sl > 0:
             account_info = mt5.account_info()
@@ -255,8 +254,6 @@ class MT5TerminalExecutor:
                 risk_amount = balance * (self.risk_cfg.risk_percentage / 100.0)
                 sl_distance = abs(price - sl)
                 
-                # Formula: Risk / (SL Distance * Contract Size)
-                # We use a simplified approximation or fall back to MT5 symbol info
                 symbol_info = mt5.symbol_info(mt5_symbol)
                 if symbol_info and sl_distance > 0:
                     tick_value = symbol_info.trade_tick_value
@@ -265,7 +262,6 @@ class MT5TerminalExecutor:
                         loss_per_lot = (sl_distance / tick_size) * tick_value
                         if loss_per_lot > 0:
                             calculated_lot = risk_amount / loss_per_lot
-                            # Round to nearest step
                             step = symbol_info.volume_step
                             lot_size = round(calculated_lot / step) * step
                             lot_size = max(symbol_info.volume_min, min(lot_size, symbol_info.volume_max))

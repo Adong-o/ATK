@@ -111,6 +111,12 @@ async def run_loop(settings: Settings, run_once: bool) -> None:
             if _stop_requested(stop_file):
                 log_info(logger, "Stop file detected. Exiting.")
                 break
+                
+            now = __import__("datetime").datetime.utcnow()
+            if now.weekday() >= 5:
+                log_info(logger, "Markets are closed (weekend). Sleeping...")
+                await asyncio.sleep(loop_interval)
+                continue
 
             run_id = db.create_run(
                 mode="run",
