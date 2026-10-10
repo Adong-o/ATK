@@ -116,6 +116,42 @@ with col1:
 
 with col2:
     st.header("Live Analysis Preview")
+    
+    # Read the latest live status to show indicator codes and signals
+    status_file = PROJECT_ROOT / "runs" / "live_status.json"
+    if status_file.exists():
+        import json
+        try:
+            status_data = json.loads(status_file.read_text(encoding="utf-8"))
+            symbol = status_data.get("symbol", "Unknown")
+            decision = status_data.get("decision", {})
+            indicators = status_data.get("indicators", {})
+            
+            # Display signal intelligence
+            st.subheader(f"Signal Intel: {symbol}")
+            
+            sig_col1, sig_col2, sig_col3 = st.columns(3)
+            with sig_col1:
+                st.metric("Price", f"{float(indicators.get('price', 0)):.5f}")
+            with sig_col2:
+                st.metric("RSI (Momentum)", f"{float(indicators.get('rsi', 0)):.2f}")
+            with sig_col3:
+                st.metric("MA50 (Trend)", f"{float(indicators.get('ma_50', 0)):.5f}")
+            
+            action = decision.get("action", "skip").upper()
+            side = decision.get("side", "none").upper()
+            score = decision.get("score", 0)
+            
+            if action == "TRADE":
+                st.success(f"**Trade Executed**: {side} (Score: {score:.2f})")
+            elif action == "BLOCKED":
+                st.warning(f"**Trade Blocked by Risk Manager**: {side}")
+            else:
+                st.info(f"**Status**: Scanning for optimal setups (Current Action: SKIP)")
+                
+        except Exception:
+            pass
+            
     # Display the latest screenshot
     screenshot_dir = PROJECT_ROOT / "runs" / "screenshots"
     if screenshot_dir.exists():
