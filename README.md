@@ -52,5 +52,37 @@ To start trading and view the live bot operations, launch the Controller Dashboa
 
 The dashboard provides a **Live Analysis Preview**, allowing you to see the exact chart, candlesticks, and indicator codes ATK is analyzing right before it takes a trade.
 
-## Disclaimer
+---
+
+## ❓ Frequently Asked Questions & Real-World Trading Rules
+
+**Q: How does ATK handle Latency and Slippage during news events?**
+A: Network lag between Python and MetaTrader can cause slippage, especially during high-volatility news events like NFP or CPI. ATK uses a rigid `deviation` (Max Slippage) parameter which can be customized in the UI. If the slippage exceeds this tolerance, the trade is instantly rejected. 
+
+**Q: What happens if my internet drops or Windows updates mid-trade? (Orphaned States)**
+A: ATK uses **atomic execution**. It never opens a "naked" market order and tries to add a Stop Loss later. The Entry, Take Profit, and Stop Loss are sent in a single, unified ticket to your broker. If your computer catches fire 1 millisecond after the trade is placed, your account is still completely protected by the broker-side Stop Loss.
+
+**Q: How does the bot handle Regime Changes (Sideways/Choppy Markets)?**
+A: Trend-following indicators like the MA50 can get whipsawed in flat, low-liquidity markets (like the Asian session). ATK uses a **Session Intelligence** filter to weight or block trades during these off-hours. Future open-source updates will introduce ATR (Average True Range) volatility stop-guards to detect and avoid consolidating markets entirely.
+
+**Q: Isn't a 1% Risk Rule dangerous during Compounding Drawdowns?**
+A: Risking a static 1% of your *current* balance means that if you suffer a 6-trade losing streak, your position sizes shrink. While this mathematically protects you from blowing your account, it makes recovering slower (as you are trading with smaller lots). Users can tune their Risk Percentage in the UI Settings to match their risk appetite and recovery strategy.
+
+**Q: Are there Broker Execution Quirks I should worry about?**
+A: Yes. Different brokers (Exness vs. MetaQuotes) have different minimum lot steps, slippage rules, and spreads. A strategy that is highly profitable on a zero-spread Demo account can suffer on a Real account due to commission costs. ATK calculates lot sizes rounding to the broker's specific `volume_step`, but you should **always test on your broker's specific Demo server** first to evaluate spread behavior.
+
+**Q: Can my account be banned for using a bot?**
+A: No. ATK uses the official, broker-supported `MetaTrader5` Python API. It does not use latency-arbitrage hacks or illegal high-frequency spam. It runs completely undetected as a standard automated terminal. Furthermore, it uses a unique "Magic Number" to securely identify and manage its own trades without interfering with your manual trades.
+
+---
+
+## 🌍 Open Source Roadmap
+As an open-source project, ATK is constantly evolving. Here is what we are planning next:
+1. **Machine Learning Integrations**: Moving beyond hardcoded RSI/MA rules to dynamic probability scoring using XGBoost or Scikit-Learn.
+2. **Advanced Volatility Guards**: Implementing ATR filters to completely shut down trading during flatline regime periods.
+3. **Trailing Stops**: Real-time management of open trades to lock in profits dynamically rather than relying on hard TP levels.
+
+---
+
+## ⚠️ Disclaimer
 This software is provided for educational and experimental purposes. Algorithmic trading in financial markets involves significant risk of loss. Always forward-test the bot extensively on a **Demo Account** before allowing it to trade with real funds.

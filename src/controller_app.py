@@ -76,6 +76,39 @@ with st.sidebar:
         save_env(login, password, server)
         st.success("Credentials saved to .env")
 
+    st.markdown("---")
+    st.header("Strategy Customization")
+    
+    import yaml
+    overrides_file = PROJECT_ROOT / "config" / "overrides.yaml"
+    current_overrides = {}
+    if overrides_file.exists():
+        current_overrides = yaml.safe_load(overrides_file.read_text()) or {}
+        
+    risk_overrides = current_overrides.get("risk", {})
+    scalping_overrides = current_overrides.get("scalping", {})
+    mt5_overrides = current_overrides.get("mt5", {})
+    
+    risk_pct = st.number_input("Risk Per Trade (%)", min_value=0.1, max_value=5.0, value=float(risk_overrides.get("risk_percentage", 1.0)), step=0.1)
+    max_trades = st.number_input("Max Trades Per Day", min_value=1, max_value=50, value=int(risk_overrides.get("max_trades_per_day", 15)))
+    sl_points = st.number_input("Stop Loss Distance", min_value=1.0, max_value=100.0, value=float(scalping_overrides.get("sl_points", 5.0)), step=1.0)
+    slippage = st.number_input("Max Slippage (Deviation)", min_value=5, max_value=100, value=int(mt5_overrides.get("deviation", 30)))
+    
+    if st.button("Save Strategy Settings"):
+        current_overrides["risk"] = {
+            "risk_percentage": risk_pct,
+            "max_trades_per_day": max_trades
+        }
+        current_overrides["scalping"] = {
+            "sl_points": sl_points
+        }
+        current_overrides["mt5"] = {
+            "deviation": slippage
+        }
+        overrides_file.parent.mkdir(parents=True, exist_ok=True)
+        overrides_file.write_text(yaml.safe_dump(current_overrides))
+        st.success("Settings saved! Restart bot to apply.")
+
 # ─── MAIN CONTENT ──────────────────────────────────────────────────────────
 col1, col2 = st.columns([1, 1.5])
 
