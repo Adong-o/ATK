@@ -12,7 +12,7 @@ ENV_FILE = PROJECT_ROOT / ".env"
 STOP_FILE = PROJECT_ROOT / "STOP_BOT.txt"
 
 def load_env():
-    env_vars = {"MT5_LOGIN": "", "MT5_PASSWORD": "", "MT5_SERVER": "Exness-MT5Trial9"}
+    env_vars = {"MT5_LOGIN": "", "MT5_PASSWORD": "", "MT5_SERVER": "Exness-MT5Trial9", "MT5_TERMINAL_PATH": ""}
     if ENV_FILE.exists():
         for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
             if "=" in line:
@@ -20,11 +20,12 @@ def load_env():
                 env_vars[k.strip()] = v.strip()
     return env_vars
 
-def save_env(login, password, server):
+def save_env(login, password, server, terminal_path=""):
     lines = [
         f"MT5_LOGIN={login}",
         f"MT5_PASSWORD={password}",
-        f"MT5_SERVER={server}"
+        f"MT5_SERVER={server}",
+        f"MT5_TERMINAL_PATH={terminal_path}"
     ]
     ENV_FILE.write_text("\n".join(lines), encoding="utf-8")
 
@@ -82,7 +83,7 @@ has_creds = bool(env.get("MT5_LOGIN") and env.get("MT5_PASSWORD") and env.get("M
 
 if has_creds:
     from src.execution.mt5_terminal import _find_terminal_path
-    term_path = _find_terminal_path()
+    term_path = env.get("MT5_TERMINAL_PATH") or _find_terminal_path()
     
     init_success = False
     if term_path:
@@ -93,6 +94,7 @@ if has_creds:
     if not init_success:
         err = mt5.last_error()
         st.error(f"🔴 MetaTrader 5 Terminal Failed to Initialize. Error: {err}")
+        st.info("💡 If you have MT5 installed, please provide the exact path to 'terminal64.exe' in the sidebar.")
     else:
         if mt5.login(int(env["MT5_LOGIN"]), password=env["MT5_PASSWORD"], server=env["MT5_SERVER"]):
             acc = mt5.account_info()
@@ -121,9 +123,10 @@ with st.sidebar:
     login = st.text_input("Account Login", value=env_vars.get("MT5_LOGIN", ""))
     password = st.text_input("Password", value=env_vars.get("MT5_PASSWORD", ""), type="password")
     server = st.text_input("Broker Server (Exact Name)", value=env_vars.get("MT5_SERVER", ""), help="Example: Exness-MT5Trial9 or MetaQuotes-Demo")
+    terminal_path = st.text_input("MT5 Terminal Path (Optional)", value=env_vars.get("MT5_TERMINAL_PATH", ""), help="e.g. C:\\Program Files\\Exness MT5\\terminal64.exe")
     
     if st.button("Save Credentials"):
-        save_env(login, password, server)
+        save_env(login, password, server, terminal_path)
         st.success("Credentials saved to .env")
         st.rerun()
         
@@ -270,3 +273,8 @@ if st.button("Load History from MT5"):
         mt5.shutdown()
     else:
         st.error("Could not connect to MT5 to fetch history.")
+
+st.markdown("---")
+with st.expander("🌐 Open MT5 Web Terminal (Manual Trading & Account Management)", expanded=False):
+    st.info("The Web Terminal below is for manually opening accounts or viewing charts. **The Python bot engine strictly requires the desktop terminal path (configured in the sidebar) to execute automated trades.**")
+    st.components.v1.iframe("https://trade.mql5.com/trade", height=600, scrolling=True)
