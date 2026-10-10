@@ -2,7 +2,7 @@
 
 The **Adongo Trading Kit (ATK)** is an advanced, fully automated algorithmic trading application designed for MetaTrader 5 (MT5). 
 
-While ATK is built as a powerful tool for **schooling and educational purposes** to understand algorithmic market analysis, it is a **production-ready 100% functional trading system**. It can be deployed on a live real-money account or a demo account across any broker (like Exness, MetaQuotes, etc.). 
+ATK was primarily built to **test AI agent models** and evaluate algorithmic market analysis in live environments. It serves as a steep learning curve and development milestone for its builder, **[Adongo](https://adongo.me)**. While it is a **production-ready 100% functional trading system**, it must be tested well before deployment on a live real-money account.
 
 ## 🧠 The "Brain": How ATK Works
 
@@ -85,4 +85,4 @@ As an open-source project, ATK is constantly evolving. Here is what we are plann
 ---
 
 ## ⚠️ Disclaimer
-This software is provided for educational and experimental purposes. Algorithmic trading in financial markets involves significant risk of loss. Always forward-test the bot extensively on a **Demo Account** before allowing it to trade with real funds.
+This software is provided for testing AI agent models and experimental purposes. Algorithmic trading in financial markets involves significant risk of loss. Always forward-test the bot extensively on a **Demo Account** before allowing it to trade with real funds.
