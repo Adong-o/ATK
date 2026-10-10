@@ -81,8 +81,18 @@ env = load_env()
 has_creds = bool(env.get("MT5_LOGIN") and env.get("MT5_PASSWORD") and env.get("MT5_SERVER"))
 
 if has_creds:
-    if not mt5.initialize():
-        st.error("🔴 MetaTrader 5 Terminal Not Found or Failed to Initialize.")
+    from src.execution.mt5_terminal import _find_terminal_path
+    term_path = _find_terminal_path()
+    
+    init_success = False
+    if term_path:
+        init_success = mt5.initialize(path=term_path)
+    else:
+        init_success = mt5.initialize()
+        
+    if not init_success:
+        err = mt5.last_error()
+        st.error(f"🔴 MetaTrader 5 Terminal Failed to Initialize. Error: {err}")
     else:
         if mt5.login(int(env["MT5_LOGIN"]), password=env["MT5_PASSWORD"], server=env["MT5_SERVER"]):
             acc = mt5.account_info()
@@ -244,7 +254,11 @@ with col2:
 st.markdown("---")
 st.header("Recent Trade History")
 if st.button("Load History from MT5"):
-    if mt5.initialize() and mt5.login(int(env["MT5_LOGIN"]), password=env["MT5_PASSWORD"], server=env["MT5_SERVER"]):
+    from src.execution.mt5_terminal import _find_terminal_path
+    term_path = _find_terminal_path()
+    init_success = mt5.initialize(path=term_path) if term_path else mt5.initialize()
+    
+    if init_success and mt5.login(int(env["MT5_LOGIN"]), password=env["MT5_PASSWORD"], server=env["MT5_SERVER"]):
         now = datetime.datetime.now()
         from_date = now - datetime.timedelta(days=7)
         deals = mt5.history_deals_get(from_date, now)
